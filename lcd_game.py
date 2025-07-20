@@ -11,6 +11,80 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from config import *
 
+class ButtonManager:
+    """
+    Менеджер кнопок для игрового устройства
+    """
+    
+    def __init__(self):
+        """Инициализация менеджера кнопок"""
+        self.button_states = {}
+        self.button_callbacks = {}
+        self.last_press_time = {}
+        
+        # Настройка GPIO для кнопок
+        for button_name, pin in BUTTON_PINS.items():
+            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP if BUTTON_PULL_UP else GPIO.PUD_DOWN)
+            self.button_states[button_name] = False
+            self.last_press_time[button_name] = 0
+    
+    def is_pressed(self, button_name):
+        """
+        Проверка нажатия кнопки
+        
+        Args:
+            button_name (str): Имя кнопки
+            
+        Returns:
+            bool: True если кнопка нажата
+        """
+        if button_name not in BUTTON_PINS:
+            return False
+            
+        pin = BUTTON_PINS[button_name]
+        current_state = GPIO.input(pin) == GPIO.LOW if BUTTON_PULL_UP else GPIO.input(pin) == GPIO.HIGH
+        
+        # Проверка дребезга
+        current_time = time.time()
+        if current_state and not self.button_states[button_name]:
+            if current_time - self.last_press_time[button_name] > BUTTON_DEBOUNCE_TIME:
+                self.last_press_time[button_name] = current_time
+                self.button_states[button_name] = True
+                return True
+        elif not current_state:
+            self.button_states[button_name] = False
+            
+        return False
+    
+    def is_held(self, button_name):
+        """
+        Проверка удержания кнопки
+        
+        Args:
+            button_name (str): Имя кнопки
+            
+        Returns:
+            bool: True если кнопка удерживается
+        """
+        if button_name not in BUTTON_PINS:
+            return False
+            
+        pin = BUTTON_PINS[button_name]
+        return GPIO.input(pin) == GPIO.LOW if BUTTON_PULL_UP else GPIO.input(pin) == GPIO.HIGH
+    
+    def get_all_pressed(self):
+        """
+        Получение всех нажатых кнопок
+        
+        Returns:
+            list: Список нажатых кнопок
+        """
+        pressed = []
+        for button_name in BUTTON_PINS.keys():
+            if self.is_pressed(button_name):
+                pressed.append(button_name)
+        return pressed
+
 class LCDGame:
     """
     Драйвер для 1.54 inch LCD GAME дисплея на CM4
@@ -52,6 +126,9 @@ class LCDGame:
         # Включение подсветки
         GPIO.output(PIN_BACKLIGHT, GPIO.HIGH)
         
+        # Инициализация менеджера кнопок
+        self.buttons = ButtonManager()
+    
     def _init_display(self):
         """Инициализация дисплея ST7789"""
         # Сброс дисплея
@@ -244,11 +321,16 @@ class GameEngine:
             delta_time = current_time - self.last_frame_time
             
             if delta_time >= 1.0 / self.fps:
+                self.handle_input()
                 self.update(delta_time)
                 self.render()
                 self.last_frame_time = current_time
             
             time.sleep(0.001)  # Небольшая задержка для снижения нагрузки на CPU
+    
+    def handle_input(self):
+        """Обработка ввода (переопределить в наследниках)"""
+        pass
     
     def update(self, delta_time):
         """Обновление игровой логики (переопределить в наследниках)"""
@@ -277,11 +359,40 @@ if __name__ == "__main__":
         # Обновление дисплея
         lcd.update()
         
-        print("Тест дисплея завершен. Нажмите Ctrl+C для выхода.")
+        print("Тест дисплея завершен.")
+        print("Теперь тестируем кнопки...")
+        print("Нажимайте кнопки для проверки (Ctrl+C для выхода)")
         
-        # Ожидание
+        # Тестирование кнопок
+        button_states = {}
+        for button_name in lcd.buttons.button_states.keys():
+            button_states[button_name] = False
+        
         while True:
-            time.sleep(1)
+            # Проверка кнопок
+            for button_name in lcd.buttons.button_states.keys():
+                if lcd.buttons.is_pressed(button_name):
+                    print(f"Кнопка {button_name} нажата!")
+                    button_states[button_name] = True
+                elif button_states[button_name] and not lcd.buttons.is_held(button_name):
+                    button_states[button_name] = False
+            
+            # Обновление отображения состояния кнопок
+            lcd.clear()
+            lcd.draw_text("Button Test", 80, 20, color=(255, 255, 255), font_size=16)
+            
+            y_pos = 50
+            for i, (button_name, is_pressed) in enumerate(button_states.items()):
+                color = (0, 255, 0) if is_pressed else (255, 255, 255)
+                lcd.draw_text(f"{button_name}: {'ON' if is_pressed else 'OFF'}", 
+                            10, y_pos, color=color, font_size=10)
+                y_pos += 12
+                
+                if (i + 1) % 4 == 0:
+                    y_pos += 5
+            
+            lcd.update()
+            time.sleep(0.1)
             
     except KeyboardInterrupt:
         print("\nЗавершение работы...")

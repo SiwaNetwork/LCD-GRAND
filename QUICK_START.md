@@ -1,136 +1,93 @@
-# Быстрый старт - 1.54 inch LCD GAME на CM4
+# Быстрый старт - 1.54 inch LCD GAME
 
-## Быстрая установка
+## Подключение согласно схеме
 
-### 1. Клонирование репозитория
-```bash
-git clone <repository-url>
-cd cm4-lcd-game-driver
-```
+### Основные пины дисплея
+- **RST** → Pin 13 (GPIO 27)
+- **DC** → Pin 15 (GPIO 22)  
+- **CS** → Pin 24 (GPIO 8)
+- **BL** → Pin 12 (GPIO 18)
+- **MOSI** → Pin 19 (GPIO 10)
+- **MISO** → Pin 21 (GPIO 9)
+- **SCK** → Pin 23 (GPIO 11)
+- **3.3V** → Pin 1 или 17
+- **GND** → Любой GND пин
 
-### 2. Установка драйвера
-```bash
-sudo ./install.sh
-```
+### Кнопки управления
+- **A** → Pin 40 (GPIO 21)
+- **B** → Pin 38 (GPIO 20)
+- **UP** → Pin 36 (GPIO 16)
+- **DOWN** → Pin 29 (GPIO 5)
+- **LEFT** → Pin 31 (GPIO 6)
+- **RIGHT** → Pin 33 (GPIO 13)
+- **START** → Pin 35 (GPIO 19)
+- **SELECT** → Pin 37 (GPIO 26)
+- **MENU** → Pin 11 (GPIO 17)
 
-### 3. Перезагрузка системы
-```bash
-sudo reboot
-```
+## Установка
 
-### 4. Тестирование
-```bash
-# Базовый тест
-sudo /opt/lcd_game_driver/test_display.py
+1. **Включите SPI:**
+   ```bash
+   sudo raspi-config
+   # Interface Options → SPI → Enable
+   ```
 
-# Демонстрация возможностей
-sudo python3 examples/demo.py
+2. **Установите зависимости:**
+   ```bash
+   sudo apt update
+   sudo apt install python3-pip python3-dev
+   pip3 install -r requirements.txt
+   ```
 
-# Игра "Змейка"
-sudo python3 examples/snake_game.py
-```
+3. **Запустите установку:**
+   ```bash
+   sudo ./install.sh
+   ```
 
-## Подключение дисплея
+## Тестирование
 
-### Схема подключения 40PIN
+1. **Тест дисплея:**
+   ```bash
+   python3 lcd_game.py
+   ```
 
-| LCD Pin | CM4 Pin | Функция |
-|---------|---------|---------|
-| VCC     | 3.3V    | Питание |
-| GND     | GND     | Земля   |
-| SCL     | GPIO 11 | SPI SCLK |
-| SDA     | GPIO 10 | SPI MOSI |
-| RES     | GPIO 25 | Reset |
-| DC      | GPIO 24 | Data/Command |
-| CS      | GPIO 8  | Chip Select |
-| BLK     | GPIO 18 | Backlight |
+2. **Тест кнопок:**
+   ```bash
+   python3 examples/button_test.py
+   ```
 
-## Базовое использование
+3. **Простая игра:**
+   ```bash
+   python3 examples/simple_game.py
+   ```
 
-### Простой пример
-```python
-from lcd_game import LCDGame
+## Управление в игре
 
-# Инициализация дисплея
-lcd = LCDGame()
+- **UP/DOWN/LEFT/RIGHT** - Движение
+- **A/B** - Действия
+- **START** - Пауза/Возобновление
+- **SELECT** - Перезапуск
+- **MENU** - Меню
 
-# Очистка экрана
-lcd.clear()
-
-# Рисование текста
-lcd.draw_text("Hello CM4!", 10, 10, color=(255, 255, 255))
-
-# Рисование фигур
-lcd.draw_rect(50, 50, 100, 50, color=(255, 0, 0), fill=True)
-lcd.draw_circle(150, 150, 30, color=(0, 255, 0), fill=True)
-
-# Обновление дисплея
-lcd.update()
-```
-
-### Игровой пример
-```python
-from lcd_game import LCDGame, GameEngine
-
-class MyGame(GameEngine):
-    def update(self, delta_time):
-        # Обновление игровой логики
-        pass
-    
-    def render(self):
-        # Отрисовка
-        self.lcd.clear()
-        self.lcd.draw_text("Game Running", 10, 10)
-        self.lcd.update()
-
-# Запуск игры
-game = MyGame(LCDGame())
-game.start()
-```
-
-## Управление сервисом
-
-```bash
-# Запуск сервиса
-sudo systemctl start lcd-game
-
-# Остановка сервиса
-sudo systemctl stop lcd-game
-
-# Автозапуск
-sudo systemctl enable lcd-game
-
-# Статус сервиса
-sudo systemctl status lcd-game
-```
-
-## Устранение неполадок
+## Устранение проблем
 
 ### Дисплей не работает
-1. Проверьте подключение пинов
-2. Убедитесь, что SPI включен: `sudo raspi-config`
-3. Проверьте права доступа: `sudo usermod -a -G spi $USER`
+- Проверьте питание (3.3V и GND)
+- Убедитесь, что SPI включен
+- Проверьте подключение RST, DC, CS
 
-### Нет изображения
-1. Проверьте логи: `sudo journalctl -u lcd-game -f`
-2. Проверьте SPI: `ls /dev/spidev*`
-3. Перезагрузите систему: `sudo reboot`
+### Кнопки не реагируют  
+- Проверьте подключение к соответствующим GPIO
+- Убедитесь в правильной нумерации (BCM)
+- Проверьте подтягивающие резисторы
 
 ### Медленная работа
-1. Уменьшите скорость SPI в `config.py`
-2. Оптимизируйте код отрисовки
-3. Используйте аппаратное ускорение
+- Уменьшите SPI_SPEED в config.py
+- Проверьте качество соединений
 
-## Дополнительная документация
+## Следующие шаги
 
-- [Подробная инструкция по подключению](docs/WIRING_GUIDE.md)
-- [Примеры использования](examples/)
-- [Конфигурация](config.py)
-- [API документация](lcd_game.py)
-
-## Поддержка
-
-При возникновении проблем:
-1. Проверьте раздел "Устранение неполадок"
-2. Обратитесь к документации
-3. Создайте issue в репозитории
+1. Изучите `config.py` для настройки
+2. Посмотрите примеры в папке `examples/`
+3. Создайте свою игру, наследуясь от `GameEngine`
+4. Обратитесь к `docs/PINOUT_GUIDE.md` для подробной схемы
