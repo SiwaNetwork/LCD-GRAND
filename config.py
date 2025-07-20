@@ -123,3 +123,60 @@ DISPLAY_MODES = {
         'gamma': 0.8
     }
 }
+
+# Системные настройки (новые)
+SYSTEM_CONFIG = {
+    'service_name': 'lcd-game',
+    'service_user': 'pi',
+    'service_group': 'pi',
+    'install_path': '/opt/lcd_game_driver',
+    'config_path': '/etc/lcd_game.conf',
+    'log_path': '/var/log/lcd_game',
+    'autostart_path': '~/.config/autostart',
+    'backup_path': '/opt/lcd_game_backup'
+}
+
+# Настройки поворота экрана (новые)
+ROTATION_CONFIG = {
+    'supported_angles': [0, 90, 180, 270],
+    'default_angle': 0,
+    'config_file': '/boot/config.txt',
+    'calibration_dir': '/etc/X11/xorg.conf.d',
+    'current_rotation': 0
+}
+
+# Настройки калибровки (новые)
+CALIBRATION_CONFIG = {
+    'touch_device': 'ADS7846 Touchscreen',
+    'calibration_matrix': {
+        0: '268 3880 227 3936',
+        90: '227 3936 268 3880',
+        180: '268 3880 227 3936',
+        270: '227 3936 268 3880'
+    },
+    'swap_axes': False,
+    'emulate_third_button': True,
+    'third_button_timeout': 1000,
+    'third_button_threshold': 300
+}
+
+# Настройки PyMouse (новые)
+MOUSE_CONFIG = {
+    'enabled': True,
+    'move_speed': 5,
+    'click_delay': 0.1,
+    'poll_interval': 0.02
+}
+
+# Настройки FBCP (Frame Buffer Copy) (новые)
+FBCP_CONFIG = {
+    'enabled': False,
+    'binary_path': '/usr/local/bin/fbcp',
+    'build_options': {
+        'SPI_BUS_CLOCK_DIVISOR': 10,
+        'WAVESHARE_ST7789VW_HAT': 'ON',
+        'BACKLIGHT_CONTROL': 'OFF',
+        'STATISTICS': 0,
+        'USE_DMA_TRANSFERS': 'OFF'
+    }
+}
