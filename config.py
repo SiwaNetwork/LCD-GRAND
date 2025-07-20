@@ -10,11 +10,33 @@ DISPLAY_WIDTH = 240
 DISPLAY_HEIGHT = 240
 ROTATION = 0
 
-# Настройки пинов GPIO (BCM нумерация)
-PIN_RESET = 25      # GPIO 25 - Reset
-PIN_DC = 24         # GPIO 24 - Data/Command
-PIN_CS = 8          # GPIO 8  - Chip Select
-PIN_BACKLIGHT = 18  # GPIO 18 - Backlight
+# Настройки пинов GPIO (BCM нумерация) - обновлено согласно схеме подключения
+PIN_RESET = 27      # GPIO 27 (Pin 13) - Reset
+PIN_DC = 22         # GPIO 22 (Pin 15) - Data/Command
+PIN_CS = 8          # GPIO 8  (Pin 24) - Chip Select (CE0)
+PIN_BACKLIGHT = 18  # GPIO 18 (Pin 12) - Backlight
+
+# SPI пины согласно схеме
+PIN_MOSI = 10       # GPIO 10 (Pin 19) - SPI Master Out Slave In
+PIN_MISO = 9        # GPIO 9  (Pin 21) - SPI Master In Slave Out  
+PIN_SCK = 11        # GPIO 11 (Pin 23) - SPI Clock
+
+# Настройки кнопок (BCM нумерация) - согласно схеме подключения
+BUTTON_PINS = {
+    'A': 21,        # GPIO 21 (Pin 40) - Кнопка A
+    'B': 20,        # GPIO 20 (Pin 38) - Кнопка B
+    'UP': 16,       # GPIO 16 (Pin 36) - Кнопка вверх
+    'DOWN': 5,      # GPIO 5  (Pin 29) - Кнопка вниз
+    'LEFT': 6,      # GPIO 6  (Pin 31) - Кнопка влево
+    'RIGHT': 13,    # GPIO 13 (Pin 33) - Кнопка вправо
+    'START': 19,    # GPIO 19 (Pin 35) - Кнопка старт
+    'SELECT': 26,   # GPIO 26 (Pin 37) - Кнопка селект
+    'MENU': 17,     # GPIO 17 (Pin 11) - Кнопка меню/IRQ
+}
+
+# Настройки кнопок
+BUTTON_PULL_UP = True  # Использовать подтягивающие резисторы
+BUTTON_DEBOUNCE_TIME = 0.1  # Время подавления дребезга в секундах
 
 # Настройки цветов (RGB)
 COLORS = {
